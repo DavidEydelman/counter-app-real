@@ -79,6 +79,8 @@ export class CounterApp extends DDDSuper(I18NMixin(LitElement)) {
     return new URL(`./lib/${this.tag}.haxProperties.json`, import.meta.url)
       .href;
   }
+
+  
 }
 
 globalThis.customElements.define(CounterApp.tag, CounterApp);
