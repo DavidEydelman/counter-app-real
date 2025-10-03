@@ -5,11 +5,12 @@
 import { LitElement, html, css } from "lit";
 import { DDDSuper } from "@haxtheweb/d-d-d/d-d-d.js";
 import { I18NMixin } from "@haxtheweb/i18n-manager/lib/I18NMixin.js";
+import { ref } from "lit/directives/ref.js";
 
 /**
  * `counter-app`
  * 
- * @demo index.html
+ * @demo index.html 
  * @element counter-app
  */
 export class CounterApp extends DDDSuper(I18NMixin(LitElement)) {
@@ -20,7 +21,9 @@ export class CounterApp extends DDDSuper(I18NMixin(LitElement)) {
 
   constructor() {
     super();
-    this.title = "";
+    this.counter = 0;
+    this.min = 0;
+    this.max = 10;
     this.t = this.t || {};
     this.t = {
       ...this.t,
@@ -39,7 +42,9 @@ export class CounterApp extends DDDSuper(I18NMixin(LitElement)) {
   static get properties() {
     return {
       ...super.properties,
-      title: { type: String },
+      counter: { type: Number, reflect: true },
+      min: { type: Number, reflect: true },
+      max: { type: Number, reflect: true },
     };
   }
 
@@ -48,17 +53,37 @@ export class CounterApp extends DDDSuper(I18NMixin(LitElement)) {
     return [super.styles,
     css`
       :host {
-        display: block;
-        color: var(--ddd-theme-primary);
-        background-color: var(--ddd-theme-accent);
+        display: inline-block;
+        color: var(--ddd-theme-default-coalyGray);
+        background-color: var(--ddd-theme-default-roarLight);
         font-family: var(--ddd-font-navigation);
+      }
+      :host([counter="18"]) {
+        color: var(--ddd-theme-default-athertonViolet);
+      }
+      :host([counter="21"]) {
+        color: var(--ddd-theme-default-forestGreen);
+      }
+      button:hover{
+        cursor: pointer;
+        background-color: var(--ddd-theme-default-shrineTan);
+      }
+      .counter.at-limit {
+        color: var(--ddd-theme-default-original87Pink);
       }
       .wrapper {
         margin: var(--ddd-spacing-2);
-        padding: var(--ddd-spacing-4);
+        padding: var(--ddd-spacing-3);
       }
-      h3 span {
-        font-size: var(--counter-app-label-font-size, var(--ddd-font-size-s));
+      .buttons {
+        display: flex;
+        gap: var(--ddd-spacing-4);
+        justify-content: center;
+        margin-top: var(--ddd-spacing-2);
+      }
+      .counter {
+        font-size: var(--counter-app-label-font-size, var(--ddd-font-size-xxl));
+        text-align: center;
       }
     `];
   }
@@ -66,11 +91,55 @@ export class CounterApp extends DDDSuper(I18NMixin(LitElement)) {
   // Lit render the HTML
   render() {
     return html`
-<div class="wrapper">
-  <h3><span>${this.t.title}:</span> ${this.title}</h3>
-  <slot></slot>
-</div>`;
+    <confetti-container id="confetti">
+      <div class="wrapper">  
+        <div class="counter ${this.min === this.counter || this.max === this.counter ? 'at-limit' : ''}"> 
+          ${this.counter}
+        </div>
+        <div class="buttons">
+          <button @click="${this.decrease}" ?disabled="${this.min === this.counter}">-</button>
+          <button @click="${this.increase}" ?disabled="${this.max === this.counter}">+</button>
+        </div>
+      </div>
+    </confetti-container>`;
   }
+
+  increase() {
+      this.counter++;
+  }
+  decrease() {
+      this.counter--;
+  }
+
+
+updated(changedProperties) {
+  if (super.updated) {
+    super.updated(changedProperties);
+  }
+  if (changedProperties.has('counter') && this.counter === 21) {
+    this.makeItRain();
+  }
+}
+
+makeItRain() {
+  // this is called a dynamic import. It means it won't import the code for confetti until this method is called
+  // the .then() syntax after is because dynamic imports return a Promise object. Meaning the then() code
+  // will only run AFTER the code is imported and available to us
+  import("@haxtheweb/multiple-choice/lib/confetti-container.js").then(
+    (module) => {
+      // This is a minor timing 'hack'. We know the code library above will import prior to this running
+      // The "set timeout 0" means "wait 1 microtask and run it on the next cycle.
+      // this "hack" ensures the element has had time to process in the DOM so that when we set popped
+      // it's listening for changes so it can react
+      setTimeout(() => {
+        // forcibly set the poppped attribute on something with id confetti
+        // while I've said in general NOT to do this, the confetti container element will reset this
+        // after the animation runs so it's a simple way to generate the effect over and over again
+        this.shadowRoot.querySelector("#confetti").setAttribute("popped", "");
+      }, 0);
+    }
+  );
+}
 
   /**
    * haxProperties integration via file reference
@@ -79,8 +148,6 @@ export class CounterApp extends DDDSuper(I18NMixin(LitElement)) {
     return new URL(`./lib/${this.tag}.haxProperties.json`, import.meta.url)
       .href;
   }
-
-  
 }
 
 globalThis.customElements.define(CounterApp.tag, CounterApp);
