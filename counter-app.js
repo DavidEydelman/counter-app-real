@@ -9,7 +9,6 @@ import { ref } from "lit/directives/ref.js";
 
 /**
  * `counter-app`
- * 
  * @demo index.html 
  * @element counter-app
  */
