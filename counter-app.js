@@ -14,30 +14,20 @@ import { ref } from "lit/directives/ref.js";
  */
 export class CounterApp extends DDDSuper(I18NMixin(LitElement)) {
 
+   // returns tag name for custom HTML element
   static get tag() {
-    return "counter-apps";
+    return "counter-app";
   }
 
+  // runs when a new counter-app is created and sets defaults
   constructor() {
     super();
     this.counter = 0;
     this.min = 0;
-    this.max = 10;
-    this.t = this.t || {};
-    this.t = {
-      ...this.t,
-      title: "Title",
-    };
-    this.registerLocalization({
-      context: this,
-      localesPath:
-        new URL("./locales/counter-app.ar.json", import.meta.url).href +
-        "/../",
-      locales: ["ar", "es", "hi", "zh"],
-    });
+    this.max = 30;
   }
 
-  // Lit reactive properties
+  // creates lit reactive properties, and tells it to reflect to HTML attributes
   static get properties() {
     return {
       ...super.properties,
@@ -47,7 +37,7 @@ export class CounterApp extends DDDSuper(I18NMixin(LitElement)) {
     };
   }
 
-  // Lit scoped styles
+  // CSS styling using DDD
   static get styles() {
     return [super.styles,
     css`
@@ -57,24 +47,26 @@ export class CounterApp extends DDDSuper(I18NMixin(LitElement)) {
         background-color: var(--ddd-theme-default-roarLight);
         font-family: var(--ddd-font-navigation);
       }
-      :host([counter="18"]) {
+      :host([counter="18"]) { /* changes color at 18 */
         color: var(--ddd-theme-default-athertonViolet);
       }
-      :host([counter="21"]) {
+      :host([counter="21"]) { /*changes color at 21 */
         color: var(--ddd-theme-default-forestGreen);
       }
-      button:hover{
+      button:hover{ /* changes button color on hover */
         cursor: pointer;
         background-color: var(--ddd-theme-default-shrineTan);
       }
-      .counter.at-limit {
+      .counter.at-limit { /* changes color if at min or max */
         color: var(--ddd-theme-default-original87Pink);
       }
+
+      /* spacing, layout, and font */
       .wrapper {
         margin: var(--ddd-spacing-2);
         padding: var(--ddd-spacing-3);
       }
-      .buttons {
+      .buttons { 
         display: flex;
         gap: var(--ddd-spacing-4);
         justify-content: center;
@@ -87,7 +79,12 @@ export class CounterApp extends DDDSuper(I18NMixin(LitElement)) {
     `];
   }
 
-  // Lit render the HTML
+  /* 
+    renders the objects and window for effects (like confetti)
+    checks if counter is at min or max for styling
+    tells buttons which method to call on click
+    and disables buttons if at min or max
+  */
   render() {
     return html`
     <confetti-container id="confetti">
@@ -103,22 +100,24 @@ export class CounterApp extends DDDSuper(I18NMixin(LitElement)) {
     </confetti-container>`;
   }
 
+  // increments counter
   increase() {
       this.counter++;
   }
+  // decrements counter
   decrease() {
       this.counter--;
   }
 
-
-updated(changedProperties) {
-  if (super.updated) {
-    super.updated(changedProperties);
+  // runs when properties change, looks for counter changes to 21 to trigger confetti
+  updated(changedProperties) {
+    if (super.updated) {
+      super.updated(changedProperties);
+    }
+    if (changedProperties.has('counter') && this.counter === 21) {
+      this.makeItRain();
+    }
   }
-  if (changedProperties.has('counter') && this.counter === 21) {
-    this.makeItRain();
-  }
-}
 
 makeItRain() {
   // this is called a dynamic import. It means it won't import the code for confetti until this method is called
