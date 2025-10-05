@@ -15,7 +15,7 @@ import { ref } from "lit/directives/ref.js";
 export class CounterApp extends DDDSuper(I18NMixin(LitElement)) {
 
   static get tag() {
-    return "counter-app";
+    return "counter-apps";
   }
 
   constructor() {
